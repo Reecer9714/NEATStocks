@@ -14,41 +14,35 @@ stock_inputs = []
 stock_outputs = []
 indexes = []
 stock_data = []
-num_of_data_points = 100
+num_of_data_points = 50
 starting_money = 5000
-num_of_days_to_sim = 12
+num_of_days_to_sim = 14
 num_of_days_to_lookback = 7
+postitions_to_buysell = 5
 
 
 def load_data(symbol):
     data = pd.read_pickle(os.path.join(local_dir, f'data/{symbol}-intraday'))
     df = pd.DataFrame(data)
 
-    stock_data = df
-    # for index in indexes:
-    #     stock_inputs.append(
-    #         df.loc[index, ['1. open', '2. high', '3. low', '5. adjusted close']])
-    #     stock_outputs.append(df.loc[index-1, ['5. adjusted close']])
-
-    return indexes, stock_data
+    return df
 
 
 def calc_fitness(genome, config):
     indexes = random.sample(range(
         num_of_days_to_lookback*24, len(stock_data)-num_of_days_to_sim*24), num_of_data_points)
-    fitness = 1
-    money_sum = 0
+    fitness = 0
+    tried_buy = False
     net = neat.nn.FeedForwardNetwork.create(genome, config)
     for starting_index in indexes:
         money = starting_money
         position = 0
         last_buy = 0
         last_sell = 0
-        made_profit = False
         profit_pct = 0
-        tried_buy = False
-        tried_sell = False
+        week_fitness = 1
         for day in range(num_of_days_to_sim):
+            made_profit = False
             day_index = starting_index + day * 24
             day_data = stock_data.loc[day_index,
                                       ['1. open', '2. high', '3. low', '4. close']].values.tolist()
@@ -58,34 +52,24 @@ def calc_fitness(genome, config):
             softmax_result = softmax(net_output)
             class_output = np.argmax(
                 ((softmax_result / np.max(softmax_result)) == 1).astype(int))
-            if class_output == 1 and position > 5:
+            if class_output == 1 and position > postitions_to_buysell:
                 # Sell
-                position -= 5
+                position -= postitions_to_buysell
                 last_sell = day_data[0]
-                money += day_data[0] * 5
-                tried_sell = True
+                money += day_data[0] * postitions_to_buysell
                 profit_pct = last_sell / last_buy
-                if last_sell > last_buy:
-                    made_profit = True
-                fitness *= profit_pct
-            elif class_output == 2 and day_data[3] * 5 < money:
+                week_fitness *= profit_pct
+            elif class_output == 2 and day_data[3] * postitions_to_buysell < money:
                 # Buy
-                position = position + 5
+                position = position + postitions_to_buysell
                 last_buy = day_data[3]
-                money -= day_data[3] * 5
+                money -= day_data[3] * postitions_to_buysell
                 tried_buy = True
-            if made_profit:
-                fitness *= 1.05
-        fitness *= money / starting_money
-        # fitness = fitness + money
+        week_fitness *= money / starting_money
+        fitness += week_fitness
     # fitness = fitness / len(indexes)
     if not tried_buy:
         fitness = 0
-    else:
-        fitness *= 1.01
-    # if tried_sell:
-    #     fitness = fitness * 1.1
-    # fitness = fitness / (starting_money * len(indexes))
     return fitness
 
 
@@ -99,7 +83,7 @@ def run(config_file):
     p = neat.Population(config)
 
     # Add a stdout reporter to show progress in the terminal.
-    p = neat.Checkpointer.restore_checkpoint('checkpoints/stock-checkpoint-177')
+    p = neat.Checkpointer.restore_checkpoint('checkpoints/stock-checkpoint-39')
     p.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     p.add_reporter(stats)
@@ -108,7 +92,7 @@ def run(config_file):
 
     # Run for up to 300 generations.
     pe = neat.ParallelEvaluator(multiprocessing.cpu_count(), calc_fitness)
-    winner = p.run(pe.evaluate, 300)
+    winner = p.run(pe.evaluate, 50)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
@@ -126,5 +110,5 @@ if __name__ == '__main__':
     # current working directory.
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'stock-feedforward')
-    indexes, stock_data = load_data('AAPL')
+    stock_data = load_data('FB')
     run(config_path)
