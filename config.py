@@ -1,0 +1,1 @@
+stock_symbols = ["AAPL", "FB"]
