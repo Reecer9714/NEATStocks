@@ -1,1 +1,1 @@
-stock_symbols = ["AAPL", "FB"]
+stock_symbols = ["AAPL", "FB", "AMD", "MSFT", "NFLX", "AMZN", "PYPL"]
