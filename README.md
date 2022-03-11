@@ -1,6 +1,9 @@
 # NEATStocks
 
-# Setup
+## Description
+This project uses neat-python and stock data from Alpha Vantage to train a model to choose whether buy, sell, or hold a stock.
+
+## Setup
 Create python virtual environment ```python3 -m venv .env```  
 Activate environment ```source .env/bin/activate```  
 Install requirements ```pip install -r requirements.txt```  
