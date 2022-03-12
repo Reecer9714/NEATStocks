@@ -1,21 +1,21 @@
 #--- parameters for the XOR-2 experiment ---#
 
 [NEAT]
-fitness_criterion      = max
-fitness_threshold      = 3.9
-pop_size               = 150
+fitness_criterion      = mean
+fitness_threshold      = 1.5
+pop_size               = 300
 reset_on_extinction    = False
-no_fitness_termination = True
+no_fitness_termination = False
 
 [DefaultGenome]
 # node activation options
 activation_default      = sigmoid
-activation_mutate_rate  = 0.0
+activation_mutate_rate  = 0.4
 activation_options      = sigmoid
 
 # node aggregation options
 aggregation_default     = sum
-aggregation_mutate_rate = 0.0
+aggregation_mutate_rate = 0.2
 aggregation_options     = sum
 
 # node bias options
@@ -39,8 +39,8 @@ conn_delete_prob        = 0.5
 enabled_default         = True
 enabled_mutate_rate     = 0.01
 
-feed_forward            = True
-initial_connection      = full_nodirect
+feed_forward            = False
+initial_connection      = full_direct
 
 # node add/remove rates
 node_add_prob           = 0.2
@@ -48,7 +48,7 @@ node_delete_prob        = 0.2
 
 # network parameters
 num_hidden              = 0
-num_inputs              = 6
+num_inputs              = 12
 num_outputs             = 3
 
 # node response options
@@ -57,7 +57,7 @@ response_init_stdev     = 0.0
 response_max_value      = 30.0
 response_min_value      = -30.0
 response_mutate_power   = 0.0
-response_mutate_rate    = 0.0
+response_mutate_rate    = 0.2
 response_replace_rate   = 0.0
 
 # connection weight options
@@ -73,9 +73,9 @@ weight_replace_rate     = 0.1
 compatibility_threshold = 3.0
 
 [DefaultStagnation]
-species_fitness_func = max
+species_fitness_func = mean
 max_stagnation       = 20
-species_elitism      = 5
+species_elitism      = 10
 
 [DefaultReproduction]
 elitism            = 2
