@@ -19,9 +19,12 @@ ti = TechIndicators(
     output_format='pandas',
     indexing_type='date')
 
+data_folder = os.path.join(local_dir, 'data')
+if not os.path.exists(data_folder):
+    os.makedirs(data_folder)
+
 for symbol in stock_symbols:
-    file_name = f'data/{symbol}-intraday'
-    file_path = os.path.join(local_dir, file_name)
+    file_path = os.path.join(data_folder, f'{symbol}-intraday')
     if not os.path.exists(file_path):
         print(f'Downloading {symbol} intraday data from Aplha Vantage...')
         try:
