@@ -1,1 +1,9 @@
+config_file = 'stock-feedforward'
 stock_symbols = ["AAPL", "FB", "AMD", "MSFT", "NFLX", "AMZN", "PYPL"]
+stock_ticker = 'MSFT'
+starting_checkpoint = 'MSFT-checkpoint-1947'
+starting_money = 5000
+num_of_days_to_sim = 5 * 20
+num_of_days_to_lookback = 0
+postitions_to_buysell = 5
+num_of_generations = 100

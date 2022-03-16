@@ -1,9 +1,9 @@
 #--- parameters for the XOR-2 experiment ---#
 
 [NEAT]
-fitness_criterion      = mean
-fitness_threshold      = 1.5
-pop_size               = 300
+fitness_criterion      = max
+fitness_threshold      = 2
+pop_size               = 500
 reset_on_extinction    = False
 no_fitness_termination = False
 
@@ -39,7 +39,7 @@ conn_delete_prob        = 0.5
 enabled_default         = True
 enabled_mutate_rate     = 0.01
 
-feed_forward            = False
+feed_forward            = True
 initial_connection      = full_direct
 
 # node add/remove rates
@@ -73,7 +73,7 @@ weight_replace_rate     = 0.1
 compatibility_threshold = 3.0
 
 [DefaultStagnation]
-species_fitness_func = mean
+species_fitness_func = median
 max_stagnation       = 20
 species_elitism      = 10
 
