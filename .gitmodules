@@ -1,0 +1,3 @@
+[submodule "neat-python"]
+	path = neat-python
+	url = git@github.com:Reecer9714/neat-python.git

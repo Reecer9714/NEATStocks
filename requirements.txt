@@ -1,7 +1,7 @@
+-e ./neat-python
 alpha-vantage==2.3.1
 graphviz==0.19.1
 matplotlib==3.5.1
-neat-python==0.92
 numpy==1.22.2
 opencv-python==4.5.5.62
 tk==0.1.0
