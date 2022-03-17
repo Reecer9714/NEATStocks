@@ -16,7 +16,7 @@ def calc_fitness(genome, config):
     simulator.reset_sim()
     net = neat.nn.FeedForwardNetwork.create(genome, config)
     genome_strategy = partial(neat_strategy, net)
-    simulator.sim_strategy(genome_strategy, starting_index)
+    simulator.sim_strategy(genome_strategy, starting_index, num_of_days_to_sim)
     fitness, _ = simulator.evaluate()
     
     return fitness
@@ -46,7 +46,8 @@ def run(config_file, reporter=neat.StdOutReporter(True)):
     
     net = neat.nn.FeedForwardNetwork.create(winner, config)
     genome_strategy = partial(neat_strategy, net)
-    profit, avg_loss = simulator.sim_strategy(genome_strategy, len(simulator.stock_data)-num_of_days_to_sim)
+    simulator.sim_strategy(genome_strategy, len(simulator.stock_data)-num_of_days_to_sim, num_of_days_to_sim)
+    profit, avg_loss = simulator.evaluate()
 
     # Display the winning genome.
     print('\nBest genome Profit({}) AvgLoss({}):\n{}'.format(1-profit, 1-avg_loss, winner))

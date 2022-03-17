@@ -32,7 +32,7 @@ class StockSimulator:
         self.current_stock_value = 0
 
     def buy_stock(self, price):
-        if price * postitions_to_buysell < self.cash:
+        if price * postitions_to_buysell <= self.cash:
             self.cash -= price * postitions_to_buysell
             self.position += postitions_to_buysell
             self.bought_stocks.append(price)
@@ -42,7 +42,7 @@ class StockSimulator:
             return -1
 
     def sell_stock(self, price):
-        if self.position > postitions_to_buysell:
+        if self.position >= postitions_to_buysell:
             self.cash += price * postitions_to_buysell
             self.position -= postitions_to_buysell
             self.last_sell = price
@@ -54,8 +54,8 @@ class StockSimulator:
         else:
             return -1
 
-    def sim_strategy(self, strategy, starting_index):
-        for day_index in range(starting_index,starting_index+num_of_days_to_sim):
+    def sim_strategy(self, strategy, starting_index, sim_length):
+        for day_index in range(starting_index,starting_index+sim_length):
             day_data = self.stock_data.iloc[day_index].values.tolist()
             day_data.extend([self.cash, self.position, self.last_buy, self.last_sell])
 
