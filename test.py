@@ -34,10 +34,11 @@ def test():
     else:
         raise ValueError
 
-    sim_length = len(simulator.stock_data)
-    starting_index = 0
+    starting_index = 0#len(simulator.stock_data)-num_of_days_to_sim
+    sim_length = len(simulator.stock_data)-starting_index
     net = neat.nn.FeedForwardNetwork.create(p.best_genome, p.config)
     genome_strategy = partial(neat_strategy, net)
+    
 
     strategies = [
         ("NEAT", genome_strategy),
