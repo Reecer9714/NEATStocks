@@ -82,3 +82,24 @@ class StockSimulator:
         if self.last_buy == 0:
             overal_profit = 0
         return overal_profit, avg_loss
+
+    def stats(self):
+        stats = {
+            "sells": {},
+            "losses": {}
+        }
+        sells = [action[3] for action in self.actions if action[1] == "Sell"]
+        stats["sells"]['count'] = len(sells)
+        if len(sells) > 0:
+            stats["sells"]['min'] = min(sells)
+            stats["sells"]['max'] = max(sells)
+            stats["sells"]['mean'] = mean(sells)
+            stats["sells"]['stdev'] = stdev(sells)
+        losses = [sell for sell in sells if sell < 1]
+        stats["losses"]['count'] = len(losses)
+        if len(losses) > 0:
+            stats["losses"]['min'] = min(losses)
+            stats["losses"]['max'] = max(losses)
+            stats["losses"]['mean'] = mean(losses)
+            stats["losses"]['stdev'] = stdev(losses)
+        return stats
