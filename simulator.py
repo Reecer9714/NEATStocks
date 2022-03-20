@@ -1,6 +1,6 @@
 from enum import Enum
 import os
-import numpy as np
+import random
 import pandas as pd
 from neat.math_util import softmax, mean, stdev
 
