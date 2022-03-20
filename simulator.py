@@ -57,6 +57,7 @@ class StockSimulator:
     def sim_strategy(self, strategy, starting_index, sim_length):
         for day_index in range(starting_index,starting_index+sim_length):
             day_data = self.stock_data.iloc[day_index].values.tolist()
+            day_data.extend( self.stock_data.iloc[day_index-1].values.tolist() )
             day_data.extend([self.cash, self.position, self.last_buy, self.last_sell])
 
             class_output = strategy(day_data)

@@ -32,7 +32,7 @@ for symbol in stock_symbols:
             data_rsi, _ = ti.get_rsi(symbol, interval='daily')
             data_ema, _ = ti.get_ema(symbol, interval='daily', time_period=10)
             data_sma, _ = ti.get_sma(symbol, interval='daily', time_period=50)
-            data_obv, _ = ti.get_obv(symbol, interval='daily')
+            data_obv, _ = ti.get_stoch(symbol, interval='daily')
             df = DataFrame(data=data_price)
             daily_df = df.resample('D').last()
             daily_df.dropna(inplace=True)
@@ -51,7 +51,8 @@ for symbol in stock_symbols:
                 'RSI': 'rsi',
                 'EMA': 'ema',
                 'SMA': 'sma',
-                'OBV': 'obv'},
+                'SlowD': 'slowd',
+                'SlowK': 'slowk'},
                 inplace=True)
             full_df.dropna(inplace=True)
             last_2_years = date.today() - relativedelta( years = +2 )
