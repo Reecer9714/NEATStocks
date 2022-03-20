@@ -1,8 +1,8 @@
 from enum import Enum
-import os
-import random
+from math import floor
+from os import path
 import pandas as pd
-from neat.math_util import softmax, mean, stdev
+from neat.math_util import mean, stdev
 
 from config import *
 
@@ -18,7 +18,7 @@ class StockSimulator:
         pass
 
     def load_data(self, symbol):
-        self.stock_data = pd.read_pickle(os.path.join(os.path.dirname(__file__), 'data/{}-intraday'.format(symbol)))
+        self.stock_data = pd.read_pickle(path.join(path.dirname(__file__), 'data/{}-intraday'.format(symbol)))
         return self
 
     def reset_sim(self):
@@ -31,22 +31,24 @@ class StockSimulator:
         self.last_sell = 0
         self.current_stock_value = 0
 
-    def buy_stock(self, price):
-        if price * postitions_to_buysell <= self.cash:
-            self.cash -= price * postitions_to_buysell
-            self.position += postitions_to_buysell
-            self.bought_stocks.append(price)
+    def buy_stock(self, price, amount):
+        if amount > 0 and price * amount <= self.cash:
+            self.cash -= price * amount
+            self.position += amount
+            self.bought_stocks.extend([price]*amount)
             self.last_buy = self.bought_stocks[0]
             return price
         else:
             return -1
 
-    def sell_stock(self, price):
-        if self.position >= postitions_to_buysell:
-            self.cash += price * postitions_to_buysell
-            self.position -= postitions_to_buysell
+    def sell_stock(self, price, amount):
+        if amount > 0 and self.position >= amount:
+            stocks_to_sell = self.bought_stocks[:amount]
+            buy_price = mean(stocks_to_sell)
+            self.bought_stocks = self.bought_stocks[amount:]
+            self.cash += price * amount
+            self.position -= amount
             self.last_sell = price
-            buy_price = self.bought_stocks.pop(0)
             profit_pct = price / buy_price
             if profit_pct < 1:
                 self.losses.append(profit_pct)
@@ -60,18 +62,21 @@ class StockSimulator:
             day_data.extend( self.stock_data.iloc[day_index-1].values.tolist() )
             day_data.extend([self.cash, self.position, self.last_buy, self.last_sell])
 
-            class_output = strategy(day_data)
+            class_output, amount = strategy(day_data)
 
-            close_price = random.uniform(day_data[Inputs.OPEN.value],day_data[Inputs.CLOSE.value])
+            current_price = day_data[Inputs.CLOSE.value]
             if class_output == Action.SELL:
-                profit_pct = self.sell_stock(close_price)
+                shares_to_sell = floor(self.position * amount)
+                profit_pct = self.sell_stock(current_price, shares_to_sell)
                 if profit_pct >= 0:
-                    self.actions.append((day_index, "Sell", close_price, profit_pct))
+                    self.actions.append((day_index, "Sell", current_price, profit_pct, shares_to_sell))
             elif class_output == Action.BUY:
-                price = self.buy_stock(close_price)
-                if price >= 0:
-                    self.actions.append((day_index, "Buy", close_price, close_price))
-            self.current_stock_value = self.position * close_price
+                total_possible = floor(self.cash / current_price)
+                shares_to_buy = floor(total_possible * amount)
+                bought_price = self.buy_stock(current_price, shares_to_buy)
+                if bought_price >= 0:
+                    self.actions.append((day_index, "Buy", current_price, shares_to_buy))
+            self.current_stock_value = self.position * current_price
 
     def evaluate(self):  
         if len(self.losses) > 0:

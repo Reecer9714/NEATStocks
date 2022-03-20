@@ -13,7 +13,7 @@ node_names = {
         -10: 'last_open', -11: 'last_high', -12: 'last_low', -13: 'last_close',
         -14: 'last_rsi', -15: 'last_ema', -16: 'last_sma', -17: 'last_slowd', -18: 'last_slowk',
         -19: 'cash', -20: 'pos', -21: 'last_buy', -22: 'last_sell',
-        0: 'hold', 1: 'sell', 2: 'buy'}
+        0: 'hold', 1: 'sell', 2: 'buy', 3: 'amount'}
 
 class Inputs(Enum):
     OPEN = 0
