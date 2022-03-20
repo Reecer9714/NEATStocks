@@ -165,8 +165,6 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
         while pending:
             new_pending = set()
             for a, b in connections:
-                if a < 0 and a not in inputs:
-                    continue
                 if b in pending and a not in used_nodes:
                     new_pending.add(a)
                     used_nodes.add(a)
@@ -186,8 +184,7 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
             node = genome.nodes[n]
             name = str(n)
             label = f'{n}\n{node.bias:.2f}\n{node.activation}\n{node.aggregation}'#str(n)
-        attrs = {'style': 'filled',
-                 'fillcolor': node_colors.get(n, 'white')}
+            attrs = {'style': 'filled','fillcolor': node_colors.get(n, 'white')}
 
         dot.node(name, label, _attributes=attrs)
 
