@@ -113,7 +113,7 @@ def plot_species(statistics, view=False, filename='speciation.svg'):
     plt.close()
 
 
-def draw_net(config, genome, view=False, filename=None, node_names=None, show_disabled=True, prune_unused=False,
+def draw_net(config, genome, view=False, filename=None, node_names=None, show_disabled=False, prune_unused=True,
              node_colors=None, fmt='svg'):
     """ Receives a genome and draws a neural network with arbitrary topology. """
     # Attributes for network nodes.
@@ -142,9 +142,9 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
     inputs = set()
     for k in config.genome_config.input_keys:
         inputs.add(k)
-        name = node_names.get(k, str(k))
-        input_attrs = {'style': 'filled', 'shape': 'box', 'fillcolor': node_colors.get(k, 'lightgray')}
-        dot.node(name, _attributes=input_attrs)
+        # name = node_names.get(k, str(k))
+        # input_attrs = {'style': 'filled', 'shape': 'box', 'fillcolor': node_colors.get(k, 'lightgray')}
+        # dot.node(name, _attributes=input_attrs)
 
     outputs = set()
     for k in config.genome_config.output_keys:
@@ -158,13 +158,15 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
         connections = set()
         for cg in genome.connections.values():
             if cg.enabled or show_disabled:
-                connections.add((cg.in_node_id, cg.out_node_id))
+                connections.add((cg.key[0], cg.key[1]))
 
         used_nodes = copy.copy(outputs)
         pending = copy.copy(outputs)
         while pending:
             new_pending = set()
             for a, b in connections:
+                if a < 0 and a not in inputs:
+                    continue
                 if b in pending and a not in used_nodes:
                     new_pending.add(a)
                     used_nodes.add(a)
@@ -173,24 +175,33 @@ def draw_net(config, genome, view=False, filename=None, node_names=None, show_di
         used_nodes = set(genome.nodes.keys())
 
     for n in used_nodes:
-        if n in inputs or n in outputs:
+        if n in outputs:
             continue
 
+        if n in inputs:
+            name = node_names.get(n, str(n))
+            label = name
+            attrs = {'style': 'filled', 'shape': 'box', 'fillcolor': node_colors.get(n, 'lightgray')}
+        else:
+            node = genome.nodes[n]
+            name = str(n)
+            label = f'{n}\n{node.bias:.2f}\n{node.activation}\n{node.aggregation}'#str(n)
         attrs = {'style': 'filled',
                  'fillcolor': node_colors.get(n, 'white')}
-        dot.node(str(n), _attributes=attrs)
+
+        dot.node(name, label, _attributes=attrs)
 
     for cg in genome.connections.values():
         if cg.enabled or show_disabled:
-            #if cg.input not in used_nodes or cg.output not in used_nodes:
-            #    continue
             input, output = cg.key
+            if input not in used_nodes or output not in used_nodes:
+               continue
             a = node_names.get(input, str(input))
             b = node_names.get(output, str(output))
             style = 'solid' if cg.enabled else 'dotted'
             color = 'green' if cg.weight > 0 else 'red'
             width = str(0.1 + abs(cg.weight / 5.0))
-            dot.edge(a, b, _attributes={'style': style, 'color': color, 'penwidth': width})
+            dot.edge(a, b, label=f'{cg.weight:.2f}', _attributes={'style': style, 'color': color, 'penwidth': width})
 
     dot.render(filename, view=view)
 
