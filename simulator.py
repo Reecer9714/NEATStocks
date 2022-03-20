@@ -62,7 +62,7 @@ class StockSimulator:
 
             class_output = strategy(day_data)
 
-            close_price = day_data[3]
+            close_price = random.uniform(day_data[Inputs.OPEN.value],day_data[Inputs.CLOSE.value])
             if class_output == Action.SELL:
                 profit_pct = self.sell_stock(close_price)
                 if profit_pct >= 0:
