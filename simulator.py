@@ -1,5 +1,6 @@
 from enum import Enum
 from math import floor
+from operator import mod
 from os import path
 import pandas as pd
 from neat.math_util import mean, stdev
@@ -27,7 +28,6 @@ class StockSimulator:
         self.bought_stocks = []
         self.actions = []
         self.losses = []
-        self.last_buy = 0
         self.last_sell = 0
         self.current_stock_value = 0
 
@@ -36,7 +36,6 @@ class StockSimulator:
             self.cash -= price * amount
             self.position += amount
             self.bought_stocks.extend([price]*amount)
-            self.last_buy = self.bought_stocks[0]
             return price
         else:
             return -1
@@ -58,13 +57,16 @@ class StockSimulator:
 
     def sim_strategy(self, strategy, starting_index, sim_length):
         for day_index in range(starting_index,starting_index+sim_length):
-            day_data = self.stock_data.iloc[day_index].values.tolist()
-            day_data.extend( self.stock_data.iloc[day_index-1].values.tolist() )
-            day_data.extend([self.cash, self.position, self.last_buy, self.last_sell])
+            if day_index % 7:
+                self.cash += money_per_week
+                pass
+            day_data = self.stock_data.iloc[day_index-1].values.tolist()
+            day_data.extend( self.stock_data.iloc[day_index-2].values.tolist() )
+            day_data.extend([self.cash, self.position, mean(self.bought_stocks), self.last_sell])
 
             class_output, amount = strategy(day_data)
 
-            current_price = day_data[Inputs.CLOSE.value]
+            current_price = self.stock_data.iloc[day_index].close
             if class_output == Action.SELL:
                 shares_to_sell = floor(self.position * amount)
                 profit_pct = self.sell_stock(current_price, shares_to_sell)
