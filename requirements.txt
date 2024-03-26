@@ -1,9 +1,10 @@
--e ./neat-python
 alpha-vantage==2.3.1
 graphviz==0.19.1
-matplotlib==3.5.1
-numpy==1.22.2
+matplotlib==3.8.3
+numpy==1.26.4
 opencv-python==4.5.5.62
 tk==0.1.0
 pandas==1.4.1
 PySimpleGUI==4.57.0
+python-dateutil
+-e ./neat-python
