@@ -12,28 +12,32 @@ from strategy import *
 
 simulator = StockSimulator().load_data(stock_ticker)
 
-def visualizeActions(strategy_name, starting_index, sim_length, stock_data, actions, profit, avgLoss):
-    fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True, gridspec_kw={'height_ratios': [3, 1, 1]})
-    fig.suptitle(f'Profit {profit:.2f}% AvgLoss {avgLoss:.2f}%')
-    sim_data = stock_data.iloc[starting_index:starting_index+sim_length]
-    sim_data.close.plot(ax=ax1)
-    sim_data.ema.plot(ax=ax1)
-    sim_data.sma.plot(ax=ax1)
-    ax1.title.set_text(strategy_name)
-    for action in actions:
-        fc = 'r'
-        if action[3] == 0 or action[3] > 1:
-            fc = 'g'
-        ax1.annotate(f'{action[1]} {action[3]:.2f}', (stock_data.iloc[action[0]].name, stock_data.iloc[action[0]].close), color=fc)
-    sim_data.rsi.plot(ax=ax2, color='b')
-    ax2.axhline(y=30)
-    ax2.axhline(y=70)
-    ax2.title.set_text('RSI')
-    sim_data.slowd.plot(ax=ax3, color='r')
-    sim_data.slowk.plot(ax=ax3, color='g')
-    ax3.axhline(y=20)
-    ax3.axhline(y=80)
-    ax3.title.set_text('STOCH')
+def plot_Value(axis, cash, value, capital, timeline):
+    axis.stackplot(timeline, cash, value, colors=['g','b'])
+    axis.plot(timeline, capital, color='r')
+    axis.title.set_text('Value')
+
+def plot_RSI(axis, rsi):
+    rsi.plot(ax=axis, color='b')
+    axis.axhline(y=30)
+    axis.axhline(y=70)
+    axis.title.set_text('RSI')
+
+def plot_STOCH(axis, slowd, slowk):
+    slowd.plot(ax=axis, color='r')
+    slowk.plot(ax=axis, color='g')
+    axis.axhline(y=20)
+    axis.axhline(y=80)
+    axis.title.set_text('STOCH')
+
+def visualizeActions(strategy_name, starting_index, sim_length, simulator: StockSimulator, profit, stats):
+    fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, sharex=True, gridspec_kw={'height_ratios': [3, 1, 1, 1]})
+    fig.suptitle(f'Profit {profit:.2f}% AvgLoss {stats["losses"]["mean"]:.2f}%+-{stats["losses"]["stdev"]:.2f}')
+    simulator.visualize(ax1, starting_index, sim_length, strategy_name)
+    sim_data = simulator.stock_data.iloc[starting_index:starting_index+sim_length]
+    plot_Value(ax2, simulator.cash_history, simulator.value_history, simulator.capital_history, sim_data.axes[0])
+    plot_RSI(ax3, sim_data.rsi)
+    plot_STOCH(ax4, sim_data.slowd, sim_data.slowk)
 
 def test():
     checkpoint_path = os.path.join(os.path.dirname(__file__), 'checkpoints/{}'.format(starting_checkpoint))
@@ -58,9 +62,9 @@ def test():
     for name, strategy in strategies:
         simulator.reset_sim()
         simulator.sim_strategy(strategy, starting_index, sim_length)
-        profit, avg_loss = simulator.evaluate()
-        visualizeActions(name, starting_index, sim_length, simulator.stock_data, simulator.actions, profit, avg_loss)
-        print(name, simulator.stats())
+        profit, stats = simulator.evaluate()
+        visualizeActions(name, starting_index, sim_length, simulator, profit, stats)
+        print(name, stats)
         if name == "NEAT":
             visualize.draw_net(p.config, p.best_genome, view=True, node_names=node_names, show_disabled=False)
 

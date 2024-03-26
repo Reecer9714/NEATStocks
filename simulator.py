@@ -24,17 +24,23 @@ class StockSimulator:
 
     def reset_sim(self):
         self.cash = starting_money
+        self.capital = starting_money
         self.position = 0
         self.bought_stocks = []
         self.actions = []
         self.losses = []
+        self.cash_history = []
+        self.capital_history = []
+        self.value_history = []
         self.last_sell = 0
+        self.last_buy = 0
         self.current_stock_value = 0
 
     def buy_stock(self, price, amount):
         if amount > 0 and price * amount <= self.cash:
             self.cash -= price * amount
             self.position += amount
+            self.last_buy = price
             self.bought_stocks.extend([price]*amount)
             return price
         else:
@@ -59,6 +65,7 @@ class StockSimulator:
         for day_index in range(starting_index,starting_index+sim_length):
             if day_index % 7:
                 self.cash += money_per_week
+                self.capital += money_per_week
                 pass
             day_data = self.stock_data.iloc[day_index-1].values.tolist()
             day_data.extend( self.stock_data.iloc[day_index-2].values.tolist() )
@@ -79,16 +86,19 @@ class StockSimulator:
                 if bought_price >= 0:
                     self.actions.append((day_index, "Buy", current_price, shares_to_buy))
             self.current_stock_value = self.position * current_price
+            self.value_history.append(self.current_stock_value)
+            self.cash_history.append(self.cash)
+            self.capital_history.append(self.capital)
 
     def evaluate(self):  
         if len(self.losses) > 0:
             avg_loss = mean(self.losses)
         else:
             avg_loss = 0.9 # Assume 10% loss
-        overal_profit = (self.current_stock_value * avg_loss + self.cash) / starting_money
+        overal_profit = (self.current_stock_value * avg_loss + self.cash) / self.capital
         if self.last_buy == 0:
             overal_profit = 0
-        return overal_profit, avg_loss
+        return overal_profit, self.stats()
 
     def stats(self):
         stats = {
@@ -107,6 +117,19 @@ class StockSimulator:
         if len(losses) > 0:
             stats["losses"]['min'] = min(losses)
             stats["losses"]['max'] = max(losses)
-            stats["losses"]['mean'] = mean(losses)
-            stats["losses"]['stdev'] = stdev(losses)
+        stats["losses"]['mean'] = mean(losses)
+        stats["losses"]['stdev'] = stdev(losses)
         return stats
+
+    def visualize(self, axis, starting_index, sim_length, strategy_name):
+        sim_data = self.stock_data.iloc[starting_index:starting_index+sim_length]
+        sim_data.close.plot(ax=axis)
+        sim_data.ema.plot(ax=axis)
+        sim_data.sma.plot(ax=axis)
+        axis.title.set_text(strategy_name)
+        for action in self.actions:
+            fc = 'r'
+            if action[3] == 0 or action[3] >= 1:
+                fc = 'g'
+            day_data = self.stock_data.iloc[action[0]]
+            axis.annotate(f'{action[1]} {action[3]:.2f}', (day_data.name, day_data.close), color=fc)
